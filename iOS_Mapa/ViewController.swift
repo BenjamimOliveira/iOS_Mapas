@@ -19,7 +19,24 @@ class ViewController: UIViewController, MKMapViewDelegate {
         let initialLocation = CLLocation(latitude: 41.701497, longitude: -8.834756)
         
         centerMapOnLocation(location: initialLocation)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.tapped(_:)))
+        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.longPressed(_:)))
+        mapView.addGestureRecognizer(tapGesture)
+        mapView.addGestureRecognizer(longPressRecognizer)
+    
     }
+    
+    @objc func tapped(_ sender: UITapGestureRecognizer) {
+        print("tapped")
+    }
+    
+    @objc func longPressed(_ sender: UILongPressGestureRecognizer) {
+        if sender.state.rawValue == 1 {            
+            print("long")
+        }
+    }
+    
     
     func centerMapOnLocation(location: CLLocation) {
         let regionRadius: CLLocationDistance = 2000
@@ -75,6 +92,9 @@ class ViewController: UIViewController, MKMapViewDelegate {
         pinView?.rightCalloutAccessoryView = button
         
         return pinView
+        
+        
+        
         
     }
     
