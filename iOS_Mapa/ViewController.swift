@@ -8,6 +8,7 @@
 
 import UIKit
 import MapKit
+import CoreLocation
 
 
 class ViewController: UIViewController, MKMapViewDelegate {
@@ -27,13 +28,63 @@ class ViewController: UIViewController, MKMapViewDelegate {
     
     }
     
+    @IBOutlet weak var textoGeo: UITextField!
+    var geocoder = CLGeocoder()
+    
     @objc func tapped(_ sender: UITapGestureRecognizer) {
         print("tapped")
     }
     
     @objc func longPressed(_ sender: UILongPressGestureRecognizer) {
-        if sender.state.rawValue == 1 {            
-            print("long")
+        if sender.state.rawValue == 1 { 
+            //print("long")
+            let touchLocation = sender.location(in: mapView)
+            let locationCoordinate = mapView.convert(touchLocation, toCoordinateFrom: mapView)
+            print("long tap at lat: \(locationCoordinate.latitude) long: \(locationCoordinate.longitude)")
+            
+            let location = CLLocation(latitude: locationCoordinate.latitude, longitude: locationCoordinate.longitude)
+            
+            geocoder.reverseGeocodeLocation(location){ (placemarks, error) in
+                self.processResponseRev(withPlacemarks: placemarks, error: error)
+            }
+            
+        }
+    }
+    
+    @IBAction func butGeocoding(_ sender: Any) {
+        geocoder.geocodeAddressString(textoGeo.text!){ (placemarks, error) in
+            self.processResponse(withPlacemarks: placemarks, error: error)
+        }
+    }
+    
+    private func processResponse(withPlacemarks placemarks: [CLPlacemark]?, error: Error?){
+        if let error = error{
+            print("Nao foi possivel encontrar o endereço")
+        }else{
+            var location: CLLocation?
+            if let placemarks = placemarks, placemarks.count > 0 {
+                location = placemarks.first?.location
+            }
+            
+            if let location = location {
+                let coordinate = location.coordinate
+                print("\(coordinate.latitude), \(coordinate.longitude)")
+                centerMapOnLocation(location: CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude))
+            }else{
+                print("Nao foi possivel encontrar o endereço")
+            }
+        }
+    }
+    
+    private func processResponseRev(withPlacemarks placemarks: [CLPlacemark]?, error: Error?){
+        if let error = error {
+            print("unable to reverse geocode location")
+        }else{
+            if let placemarks = placemarks, let placemark = placemarks.first{
+                print("\(placemark.country!) - \(placemark.locality!) - \(placemark.postalCode!) - \(placemark.name!)")
+            }else{
+                print("nao foi encontrado match")
+            }
         }
     }
     
